@@ -1,0 +1,151 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends HTMLAttributes<"form"> {
+  action: string; // Make 'action' required
+  text?: string; // Text for open modal button
+}
+
+const { text, ...attrs } = Astro.props;
+---
+
+<dialog-form>
+  <button>
+    {text}
+  </button>
+  <dialog>
+    <form {...attrs}>
+      <slot />
+    </form>
+    <div class="success">
+      <slot name="success" />
+    </div>
+    <div class="error">
+      <slot name="error" />
+    </div>
+  </dialog>
+</dialog-form>
+
+<script>
+  class DialogForm extends HTMLElement {
+    // Initialize variables
+    inProgress: boolean = false;
+    button = this.querySelector('button')!
+    dialog = this.querySelector('dialog')!
+    form = this.querySelector('form')!
+    controller!: AbortController; // Controller used to cleanup event listeners
+
+    constructor() {
+      // Classes that 'extend' andother class must call `super()`
+      super();
+
+      // Assign functions as event listeners
+      this.button.addEventListener("click", this.open.bind(this));
+      this.form.addEventListener("submit", this.submit.bind(this));
+    }
+
+    open(e: Event) {
+      // Open Modal
+      console.log("Opening Modal");
+      this.dialog.showModal();
+
+      // Create Controller to remove event listener when calling close()
+      this.controller = new AbortController();
+
+      // Close modal when clicking outside of it
+      addEventListener(
+        "click",
+        (e) => {
+          if (!this.contains(e.target as Node)) this.dialog.close();
+        },
+        // Assign controller to listener
+        { signal: this.controller.signal }
+      );
+    }
+
+    close(e: Event) {
+      // Close dialog
+      console.log("Closing Modal");
+      this.dialog.close();
+
+      // Remove outside click listener
+      this.controller.abort();
+    }
+
+    error() {
+      // Use classes to style based on state, show error message for 2.5s
+      this.classList.add("error");
+      setTimeout(() => this.classList.remove("error"), 2500);
+    }
+
+    success() {
+      // Use classes to style based on state, show success message for 2.5s
+      this.classList.add("success");
+      setTimeout(() => this.classList.remove("success"), 2500);
+    }
+
+    async submit(e: Event) {
+      e.preventDefault();
+
+      // Prevent re-calling API if already in progress
+      if (!this.inProgress) {
+        this.inProgress = true;
+
+        // Create FormData object for sending to API route
+        const body = new FormData(this.form);
+
+        // Fetch endpoint
+        console.log("Fetching Endpoint");
+        fetch(this.form.action, { method: this.form.method, body })
+          .then((res) => res.json())
+          .then((data) => {
+            console.log("Response: ", data);
+
+            // Handle data from API
+            if (data.success) {
+              this.success();
+            } else {
+              this.error();
+            }
+
+            this.inProgress = false;
+          })
+          .catch((e) => console.log("ERROR", e));
+      }
+    }
+  }
+
+  customElements.define("dialog-form", DialogForm);
+</script>
+
+<style>
+  /* Click through backdrop to close modal */
+  :global(::backdrop) {
+    pointer-events: none;
+  }
+
+  /* Dialog is a grid that display one panel aty a time */
+  dialog[open] {
+    display: grid;
+  }
+
+  dialog > * {
+    display: none; /* Hide all children, children are shown depending on state */
+    grid-area: 1 / 1 / 1 / 1; /* Stack all children on top of each other */
+  }
+
+  /* Show form element if no state */
+  :not(.success, .error) dialog > form {
+    display: block;
+  }
+
+  /* Show success message if request is successful */
+  .success dialog > *:nth-child(2) {
+    display: block;
+  }
+
+  /* Show error message if request throws error */
+  .error dialog > *:nth-child(3) {
+    display: block;
+  }
+</style>

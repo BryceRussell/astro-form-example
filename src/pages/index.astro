@@ -1,0 +1,69 @@
+---
+import Form from "../Form.astro";
+import "../styles.css";
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Form Demo</title>
+  </head>
+  <body>
+    <h1>Form Demo</h1>
+
+    <Form id="one" action="/api/one" method="POST" text="Open Modal 1">
+      <h2>Contact Us</h2>
+      <div>
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" placeholder="Name..." />
+      </div>
+      <div>
+        <label for="email">Email</label>
+        <input type="text" id="email" name="email" placeholder="Email..." />
+      </div>
+      <div>
+        <label for="message">Message</label>
+        <textarea id="message" name="message" placeholder="Message..."
+        ></textarea>
+      </div>
+      <button type="submit"> Submit</button>
+			
+			<div slot="success">
+				<h3>Success!</h3>
+			</div>
+
+			<div slot="error">
+				<h3>Error</h3>
+			</div>
+    </Form>
+
+    <Form id="two" action="/api/two" method="POST" text="Open Modal 2">
+      <h2>Contact Us</h2>
+      <div>
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" placeholder="Name..." />
+      </div>
+      <div>
+        <label for="email">Email</label>
+        <input type="text" id="email" name="email" placeholder="Email..." />
+      </div>
+      <div>
+        <label for="message">Message</label>
+        <textarea id="message" name="message" placeholder="Message..."
+        ></textarea>
+      </div>
+      <button type="submit"> Submit</button>
+
+			<div slot="success">
+				<h3>Success!</h3>
+			</div>
+			
+			<div slot="error">
+				<h3>Error</h3>
+			</div>
+    </Form>
+  </body>
+</html>
